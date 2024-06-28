@@ -6,23 +6,23 @@
 
 namespace membase
 {
-	bool set_memory(unsigned char* address, void* data, unsigned int size);
-	void patch(unsigned char* address, void* data);
+    bool set_memory(unsigned char* address, void* data, unsigned int size);
+    void patch(unsigned char* address, void* data);
 }
 
 class memory
 {
 public:
-	explicit memory(unsigned int target, unsigned int size);
-	explicit memory(unsigned char* target, unsigned int size);
-	~memory();
+    explicit memory(unsigned int target, unsigned int size);
+    explicit memory(unsigned char* target, unsigned int size);
+    ~memory();
 
-	bool jump(void* destination);
+    bool jump(void* destination);
 
-private:	
-	unsigned int get_distance(unsigned char* source, void* destination);
+private:
+    unsigned int get_distance(unsigned char* source, void* destination);
 
-	std::unique_ptr<unsigned char> data;
-	unsigned char* address;
-	unsigned int size;
+    std::unique_ptr<unsigned char> data;
+    unsigned char* address;
+    unsigned int size;
 };

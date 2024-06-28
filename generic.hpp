@@ -51,6 +51,6 @@
 
 namespace function
 {
-	bool close_handle(std::string const& handle_name);
-	bool redirect(bool enable, void** function, void* redirection);
+    bool close_handle(std::string const& handle_name);
+    bool redirect(bool enable, void** function, void* redirection);
 }

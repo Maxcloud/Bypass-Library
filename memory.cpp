@@ -4,59 +4,59 @@
 
 namespace membase
 {
-	bool set_memory(unsigned char* address, void* data, unsigned int size)
-	{
-		MEMORY_BASIC_INFORMATION mbi;
+    bool set_memory(unsigned char* address, void* data, unsigned int size)
+    {
+        MEMORY_BASIC_INFORMATION mbi;
 
-		if (VirtualQuery(address, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) != sizeof(MEMORY_BASIC_INFORMATION))
-		{
-			return false;
-		}
+        if (VirtualQuery(address, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) != sizeof(MEMORY_BASIC_INFORMATION))
+        {
+            return false;
+        }
 
-		if (!mbi.Protect || (mbi.Protect & PAGE_GUARD))
-		{
-			return false;
-		}
-	
-		unsigned long protection = 0;
+        if (!mbi.Protect || (mbi.Protect & PAGE_GUARD))
+        {
+            return false;
+        }
 
-		if (!(mbi.Protect & PAGE_EXECUTE_READWRITE))
-		{
-			if (!VirtualProtect(mbi.BaseAddress, mbi.RegionSize, PAGE_EXECUTE_READWRITE, &protection))
-			{
-				return false;
-			}
-		}
+        unsigned long protection = 0;
 
-		memcpy(address, data, size);
-		return (protection ? VirtualProtect(mbi.BaseAddress, mbi.RegionSize, protection, &protection) != FALSE : true);
-	}
+        if (!(mbi.Protect & PAGE_EXECUTE_READWRITE))
+        {
+            if (!VirtualProtect(mbi.BaseAddress, mbi.RegionSize, PAGE_EXECUTE_READWRITE, &protection))
+            {
+                return false;
+            }
+        }
 
-	void patch(unsigned char* address, void* dst)
-	{
-		*(BYTE*)address = 0xE9;
-		*(unsigned int*)(address + 1) = jmp(address, dst);
-	}
+        memcpy(address, data, size);
+        return (protection ? VirtualProtect(mbi.BaseAddress, mbi.RegionSize, protection, &protection) != FALSE : true);
+    }
+
+    void patch(unsigned char* address, void* dst)
+    {
+        *(BYTE*)address = 0xE9;
+        *(unsigned int*)(address + 1) = jmp(address, dst);
+    }
 }
 
 memory::memory(unsigned int target, unsigned int size)
 {
-	this->address = reinterpret_cast<unsigned char*>(target);
+    this->address = reinterpret_cast<unsigned char*>(target);
 
-	this->size = size;
-	this->data.reset(new BYTE[this->size]);
+    this->size = size;
+    this->data.reset(new BYTE[this->size]);
 
-	memcpy(this->data.get(), this->address, this->size);
+    memcpy(this->data.get(), this->address, this->size);
 }
 
 memory::memory(unsigned char* target, unsigned int size)
 {
-	this->address = target;
+    this->address = target;
 
-	this->size = size;
-	this->data.reset(new BYTE[this->size]);
+    this->size = size;
+    this->data.reset(new BYTE[this->size]);
 
-	memcpy(this->data.get(), this->address, this->size);
+    memcpy(this->data.get(), this->address, this->size);
 }
 
 memory::~memory(void)
@@ -66,47 +66,47 @@ memory::~memory(void)
 
 bool memory::jump(void* destination)
 {
-	if (this->size < 5)
-	{
-		return false;
-	}
+    if (this->size < 5)
+    {
+        return false;
+    }
 
-	MEMORY_BASIC_INFORMATION mbi;
+    MEMORY_BASIC_INFORMATION mbi;
 
-	if (VirtualQuery(this->address, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) != sizeof(MEMORY_BASIC_INFORMATION))
-	{
-		return false;
-	}
+    if (VirtualQuery(this->address, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) != sizeof(MEMORY_BASIC_INFORMATION))
+    {
+        return false;
+    }
 
-	if (!mbi.Protect || (mbi.Protect & PAGE_GUARD))
-	{
-		return false;
-	}
-	
-	unsigned long protection = 0;
+    if (!mbi.Protect || (mbi.Protect & PAGE_GUARD))
+    {
+        return false;
+    }
 
-	if (!(mbi.Protect & PAGE_EXECUTE_READWRITE))
-	{
-		if (!VirtualProtect(mbi.BaseAddress, mbi.RegionSize, PAGE_EXECUTE_READWRITE, &protection))
-		{
-			return false;
-		}
-	}
+    unsigned long protection = 0;
 
-	*reinterpret_cast<unsigned char*>(this->address) = 0xE9;
-	*reinterpret_cast<unsigned int*>(this->address + 1) = this->get_distance(this->address, destination);
+    if (!(mbi.Protect & PAGE_EXECUTE_READWRITE))
+    {
+        if (!VirtualProtect(mbi.BaseAddress, mbi.RegionSize, PAGE_EXECUTE_READWRITE, &protection))
+        {
+            return false;
+        }
+    }
 
-	unsigned int nops = this->size - 5;
+    *reinterpret_cast<unsigned char*>(this->address) = 0xE9;
+    *reinterpret_cast<unsigned int*>(this->address + 1) = this->get_distance(this->address, destination);
 
-	if (nops != 0)
-	{
-		memset(this->address + 5, 0x90, nops);
-	}
+    unsigned int nops = this->size - 5;
 
-	return (protection ? VirtualProtect(mbi.BaseAddress, mbi.RegionSize, protection, &protection) != FALSE : true);
+    if (nops != 0)
+    {
+        memset(this->address + 5, 0x90, nops);
+    }
+
+    return (protection ? VirtualProtect(mbi.BaseAddress, mbi.RegionSize, protection, &protection) != FALSE : true);
 }
 
 inline unsigned int memory::get_distance(unsigned char* source, void* destination)
 {
-	return reinterpret_cast<unsigned int>(destination) - reinterpret_cast<unsigned int>(source) - 5;
+    return reinterpret_cast<unsigned int>(destination) - reinterpret_cast<unsigned int>(source) - 5;
 }
