@@ -1,0 +1,70 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "bypass-library-dev",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "release-ninja",
+      "inherits": [
+        "bypass-library-dev"
+      ],
+      "displayName": "Visual Studio Debug Build",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "Win32",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/output"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build",
+      "displayName": "Build Library",
+      "targets": [
+        "all"
+      ],
+      "verbose": true,
+      "configurePreset": "release-ninja"
+    },
+    {
+      "name": "install",
+      "displayName": "Install Library",
+      "targets": [
+        "install"
+      ],
+      "verbose": true,
+      "configurePreset": "release-ninja"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "default",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release-ninja"
+        },
+        {
+          "type": "build",
+          "name": "build"
+        },
+        {
+          "type": "build",
+          "name": "install"
+        }
+      ]
+    }
+  ]
+}

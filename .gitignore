@@ -1,3 +1,8 @@
 # Default ignored files
-.vs/
-Release/
+.idea
+.vs
+build
+Release
+vcpkg_installed
+x64
+*.iml
